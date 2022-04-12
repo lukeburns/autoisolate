@@ -17,7 +17,7 @@ const script = dedent`
 const scriptAddress = 'hyp1pqdnvkw95qufp9czn8540f2lazdecn2cht475n08zaz6fkpatq2tshqltq2'
 const expectedHash = '0366cb38b4071212e0533d2af4abfd137389ab175d7d49bce2e8b49b07ab0297'
 
-test('put and get script', async t => {
+test('put script on dht', async t => {
   const localInput = new Hypercore(ram)
 
   const base = new Autobase({
@@ -35,6 +35,34 @@ test('put and get script', async t => {
 
   const code = await isolate.getScript()
   t.is(code.toString(), script, 'script retrieved from dht')
+
+  await isolate.destroy()
+
+  t.end()
+})
+
+test('load from dht', async t => {
+  const localInput = new Hypercore(ram)
+  const localOutput = new Hypercore(ram)
+
+  const base = new Autobase({
+    inputs: [localInput],
+    localInput,
+    localOutput
+  })
+
+  const isolate = new Autoisolate(scriptAddress, { autobase: base })
+  await isolate.ready()
+
+  t.is(isolate.script, script, 'loaded isolate from dht')
+  t.is(isolate.address, scriptAddress, 'same address')
+
+  await base.append('hello world')
+
+  const outputNodes = await linearizedValues(base.view)
+  const expected = bufferize(['HELLO WORLD'])
+
+  outputNodes.forEach((v, i) => t.is(true, v.value.equals(expected[i]), 'received loud greeting'))
 
   await isolate.destroy()
 
