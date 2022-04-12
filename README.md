@@ -8,7 +8,8 @@
 const toUppercaseAddress = 'hyp1pqdnvkw95qufp9czn8540f2lazdecn2cht475n08zaz6fkpatq2tshqltq2'
 
 const isolate = new Autoisolate(toUppercaseAddress, { 
-  autobase: new Autobase(opts)
+  autobase: new Autobase(opts),
+  isolate: new Isolate()
 })
 await isolate.ready()
 await base.append('hello world')
